@@ -25,13 +25,17 @@ exports.index=function(req,res){
     var _mask = {where: ['pregunta like ?','%' + req.query.search.replace(" ","%") + '%'], order:'pregunta ASC'};
     models.Quiz.findAll(_mask).then(
             function(quizes){
-                if (quizes.length === 0) {
-                    console.log('quiz_controller: ' + quizes.length + ' quizes encontrados utilizando .index');
-                    res.render('quizes/notfound.ejs',{quizes: 'No hay resultados para:' + '"' + req.query.search + '"' });
-                } else {
-                    console.log('quiz_controller: ' + quizes.length + ' quizes encontrados utilizando .index');
-                    res.render('quizes/index.ejs',{quizes:quizes});
-                }
+              /*
+              if (quizes.length === 0) {
+                  console.log('quiz_controller: ' + quizes.length + ' quizes encontrados utilizando .index');
+                  res.render('quizes/notfound.ejs',{quizes: 'No hay resultados para:' + '"' + req.query.search + '"' });
+              } else {
+                  console.log('quiz_controller: ' + quizes.length + ' quizes encontrados utilizando .index');
+                  res.render('quizes/index.ejs',{quizes:quizes});
+              }
+              */
+              console.log('quiz_controller: ' + quizes.length + ' quizes encontrados utilizando .index');
+              res.render('quizes/index.ejs',{quizes:quizes});
             }).catch(function(error){next(error);});
   };
 };
