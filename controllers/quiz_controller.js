@@ -14,11 +14,38 @@ exports.load = function(req, res, next, quizId) {
 
 // GET /quizes
 
-exports.index = function (req, res) {
-  models.Quiz.findAll().then(function (quizes) {
-    res.render('quizes/index.ejs', { quizes: quizes});
-  }).catch(function (error) { next(error);});
+exports.index=function(req,res){
+  if (req.query.search === "" || req.query.search === undefined) {
+    models.Quiz.findAll().then(
+            function(quizes){
+              res.render('quizes/index.ejs',{quizes:quizes});
+            }).catch(function(error){next(error);});
+  } else {
+    models.Quiz.findAll(
+      {where: ['pregunta like ?','%' + req.query.search.replace(" ","%") + '%'], order:'pregunta ASC'}
+    ).then(
+            function(quizes){
+                if (quizes[0] === undefined) {
+                    res.render('quizes/notfound.ejs',{quizes: 'No hay resultados para:' + '"' + req.query.search + '"' });
+                } else {
+                    res.render('quizes/index.ejs',{quizes:quizes});
+                }
+            }).catch(function(error){next(error);});
+  };
 };
+
+
+/*exports.index = function (req, res) {
+  if (req.query.search === undefined) {
+    models.Quiz.findAll().then(function (quizes) {
+      res.render('quizes/index.ejs', { quizes: quizes});
+    }).catch(function (error) { next(error);});
+  } else {
+    models.Quiz.findAll({where: ["pregunta like ?", req.query.search]}).then(function (quizes) {
+      res.render('quizes/index.ejs', { quizes: quizes});
+    }).catch(function (error) { next(error);});
+  }
+};*/
 
 // GET /quizes/:id
 exports.show = function (req, res) {
