@@ -36,19 +36,6 @@ exports.index=function(req,res){
   };
 };
 
-
-/*exports.index = function (req, res) {
-  if (req.query.search === undefined) {
-    models.Quiz.findAll().then(function (quizes) {
-      res.render('quizes/index.ejs', { quizes: quizes});
-    }).catch(function (error) { next(error);});
-  } else {
-    models.Quiz.findAll({where: ["pregunta like ?", req.query.search]}).then(function (quizes) {
-      res.render('quizes/index.ejs', { quizes: quizes});
-    }).catch(function (error) { next(error);});
-  }
-};*/
-
 // GET /quizes/:id
 exports.show = function (req, res) {
   res.render('quizes/show', { quiz: req.quiz});
