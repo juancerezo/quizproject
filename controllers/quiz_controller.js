@@ -2,7 +2,8 @@ var models = require('../models/models.js')
 
 // Autoload - factoriza el código si ruta incluye :quizId
 exports.load = function(req, res, next, quizId) {
-  models.Quiz.findById(quizId).then(
+  models.Quiz.findById(quizId)
+  .then(
     function (quiz) {
       if (quiz) {
         req.quiz = quiz;
@@ -16,23 +17,32 @@ exports.load = function(req, res, next, quizId) {
 
 exports.index=function(req,res){
   if (req.query.search === "" || req.query.search === undefined) {
-    models.Quiz.findAll().then(
-            function(quizes){
-              console.log('quiz_controller: ' + 'mostrando todos los quizes disponibles. Total: ' + quizes.length);
-              res.render('quizes/index.ejs',{quizes:quizes, errors: []});
-            }).catch(function(error){next(error);});
+    models.Quiz.findAll()
+    .then(
+      function(quizes){
+        console.log('quiz_controller: ' + 'mostrando todos los quizes disponibles. Total: ' + quizes.length);
+        res.render('quizes/index.ejs',{quizes:quizes, errors: []});
+      }
+    )
+    .catch(function(error){next(error);});
   } else {
-    var _mask = {where: ['lower(pregunta) like ?','%' + req.query.search.toLowerCase().replace(" ","%") + '%'], order:'pregunta ASC'};
-    models.Quiz.findAll(_mask).then(
-            function(quizes){
-              if (quizes.length === 0) {
-                  console.log('quiz_controller: ' + quizes.length + ' quizes encontrados utilizando .index');
-                  res.render('quizes/notfound.ejs',{quizes: 'No hay resultados para:' + '"' + req.query.search + '"', errors: []});
-              } else {
-                  console.log('quiz_controller: ' + quizes.length + ' quizes encontrados utilizando .index');
-                  res.render('quizes/index.ejs',{quizes:quizes, errors: []});
-              }
-            }).catch(function(error){next(error);});
+    var _mask = {
+      where: ['lower(pregunta) like ?','%' + req.query.search.toLowerCase().replace(" ","%") + '%'],
+      order:'pregunta ASC'
+    };
+
+    models.Quiz.findAll(_mask)
+    .then(
+      function(quizes){
+        if (quizes.length === 0) {
+          console.log('quiz_controller: ' + quizes.length + ' quizes encontrados utilizando .index');
+          res.render('quizes/notfound.ejs',{quizes: 'No hay resultados para:' + '"' + req.query.search + '"', errors: []});
+        } else {
+          console.log('quiz_controller: ' + quizes.length + ' quizes encontrados utilizando .index');
+          res.render('quizes/index.ejs',{quizes:quizes, errors: []});
+        };
+      }
+    ).catch(function(error){next(error);});
   };
 };
 
@@ -73,17 +83,44 @@ exports.create = function (req, res) {
         quiz //save: guarda en DB campos pregunta y respuesta de quiz
         .save({fields: ["pregunta", "respuesta"]})
         .then(function(){res.redirect('/quizes')})
-      }       //res.redirect: Redirección HTTP a lista de preguntas
+      };      //res.redirect: Redirección HTTP a lista de preguntas
+    }
+  );
+};
+
+// GET /quizes/:id/edit
+exports.edit = function (req, res) {
+  var quiz = req.quiz; //autoload de instancia de quiz
+  res.render('quizes/edit', {quiz: quiz, errors: []});
+}
+
+// PUT /quizes:id
+exports.update = function (req, res) {
+  req.quiz.pregunta = req.body.quiz.pregunta;
+  req.quiz.respuesta = req.body.quiz.respuesta;
+
+  req.quiz
+  .validate()
+  .then(
+    function (err) {
+      if (err) {
+        res.render('quizes/edit', {quiz: req.quiz, errors: err.errors});
+      } else {
+        req.quiz // save: guarda campos pregunta y respuesta en DB
+        .save({fields: ["pregunta", "respuesta"]})
+        .then(function() { res.redirect('/quizes');});
+      };      // Redirección HTTP a lista de preguntas (URL relativo)
     }
   );
 };
 
 // GET /author
 exports.author = function(req, res) {
-  res.render('author',
-             {  autor: 'Juan Cerezo',
-                pic: 'images/autor.png',
-                errors: []
-              }
-            );
+  res.render(
+    'author',
+    { autor: 'Juan Cerezo',
+      pic: 'images/autor.png',
+      errors: []
+    }
+  );
 };
