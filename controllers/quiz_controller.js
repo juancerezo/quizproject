@@ -126,7 +126,7 @@ exports.update = function (req, res) {
         res.render('quizes/edit', {quiz: req.quiz, errors: err.errors});
       } else {
         if (temas.indexOf(req.quiz.tema) < 0) {
-          res.render('quizes/new', {quiz: req.quiz, errors: [{message: "El tema seleccionado no existe: " + req.quiz.tema}]});
+          res.render('quizes/edit', {quiz: req.quiz, errors: [{message: "El tema seleccionado no existe: " + req.quiz.tema}]});
         } else {
           req.quiz // save: guarda campos pregunta y respuesta en DB
           .save({fields: ["pregunta", "respuesta", "tema"]})
