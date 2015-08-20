@@ -7,10 +7,17 @@ exports.load = function(req, res, next, quizId) {
     function (quiz) {
       if (quiz) {
         req.quiz = quiz;
+        console.log('quiz_controller.load: Quiz ' + '"' + quiz.pregunta + '"' + ' cargado correctamente.');
         next();
-      } else { next(new Error('No existe quizId=' + quizId));}
+      } else {next(new Error('No existe quizId=' + quizId));};
     }
-  ).catch(function (error) { next(error);});
+  )
+  .catch(
+    function (error) {
+      console.log('quiz_controller.load: Autoload Error!' + '[' + error + ']');
+      next(error);
+    }
+  );
 };
 
 // GET /quizes
@@ -20,7 +27,7 @@ exports.index=function(req,res){
     models.Quiz.findAll()
     .then(
       function(quizes){
-        console.log('quiz_controller: ' + 'mostrando todos los quizes disponibles. Total: ' + quizes.length);
+        console.log('quiz_controller.index: mostrando todos los quizes disponibles. Total: ' + quizes.length);
         res.render('quizes/index.ejs',{quizes:quizes, errors: []});
       }
     )
@@ -35,10 +42,10 @@ exports.index=function(req,res){
     .then(
       function(quizes){
         if (quizes.length === 0) {
-          console.log('quiz_controller: ' + quizes.length + ' quizes encontrados utilizando .index');
+          console.log('quiz_controller.index: ' + quizes.length + ' quizes encontrados.');
           res.render('quizes/notfound.ejs',{quizes: 'No hay resultados para:' + '"' + req.query.search + '"', errors: []});
         } else {
-          console.log('quiz_controller: ' + quizes.length + ' quizes encontrados utilizando .index');
+          console.log('quiz_controller.index: ' + quizes.length + ' quizes encontrados.');
           res.render('quizes/index.ejs',{quizes:quizes, errors: []});
         };
       }
@@ -48,11 +55,13 @@ exports.index=function(req,res){
 
 // GET /quizes/:id
 exports.show = function (req, res) {
+  console.log('quiz_controller.show: Mostrando el Quiz ' + '"' + req.quiz.pregunta + '".');
   res.render('quizes/show', { quiz: req.quiz, errors: []});
 };
 
 // GET /quizes/:id/answer
 exports.answer = function (req, res) {
+  console.log('quiz_controller.answer: comprobando respuesta recibida para el Quiz ' + '"' + req.quiz.pregunta + '".');
   var resultado = 'Incorrecto';
   if (req.query.respuesta.toLowerCase() === req.quiz.respuesta.toLowerCase()) {
     resultado = 'Correcto';
@@ -62,6 +71,7 @@ exports.answer = function (req, res) {
 
 // GET /quizes/new
 exports.new = function (req, res) {
+  console.log('quiz_controller.new: Mostrando formulario para nueva pregunta');
   var quiz = models.Quiz.build(//crea objeto quiz
     {pregunta: "", respuesta: ""}
   );
@@ -78,6 +88,7 @@ exports.create = function (req, res) {
   .then(
     function(err){
       if (err) {
+        console.log('quiz_controller.create: Create Error!');
         res.render('quizes/new', {quiz: quiz, errors: err.errors});
       } else {
         quiz //save: guarda en DB campos pregunta y respuesta de quiz
@@ -90,6 +101,7 @@ exports.create = function (req, res) {
 
 // GET /quizes/:id/edit
 exports.edit = function (req, res) {
+  console.log('quiz_controller.edit: Mostrando formulario de edicion de pregunta');
   var quiz = req.quiz; //autoload de instancia de quiz
   res.render('quizes/edit', {quiz: quiz, errors: []});
 }
@@ -108,14 +120,33 @@ exports.update = function (req, res) {
       } else {
         req.quiz // save: guarda campos pregunta y respuesta en DB
         .save({fields: ["pregunta", "respuesta"]})
-        .then(function() { res.redirect('/quizes');});
-      };      // Redirección HTTP a lista de preguntas (URL relativo)
+        .then(
+          function() {
+            console.log('quiz_controller.update: Acualizando Quiz a ' + '"' + req.quiz.pregunta + '".');
+            res.redirect('/quizes'); // Redirección HTTP a lista de preguntas (URL relativo)
+          }
+        );
+      };
     }
   );
 };
 
+// DELETE /quizes/:id
+exports.destroy = function (req, res) {
+  req.quiz
+  .destroy()
+  .then(
+    function(){
+      console.log('quiz_controller.destroy: Quiz ' + '"' + req.quiz.pregunta + '" borrado!');
+      res.redirect('/quizes')
+    }
+  )
+  .catch(function(error){next(error)});
+};
+
 // GET /author
 exports.author = function(req, res) {
+  console.log('quiz_controller.author: Mostrando autor.');
   res.render(
     'author',
     { autor: 'Juan Cerezo',
