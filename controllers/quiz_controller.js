@@ -73,7 +73,7 @@ exports.answer = function (req, res) {
 exports.new = function (req, res) {
   console.log('quiz_controller.new: Mostrando formulario para nueva pregunta');
   var quiz = models.Quiz.build(//crea objeto quiz
-    {pregunta: "", respuesta: ""}
+    {pregunta: "", respuesta: "", tema: "Otro"}
   );
   res.render('quizes/new', {quiz: quiz, errors: []});
 }
@@ -82,6 +82,7 @@ exports.new = function (req, res) {
 
 exports.create = function (req, res) {
   var quiz = models.Quiz.build(req.body.quiz);
+  var temas = models.temas;
 
   quiz
   .validate()
@@ -91,10 +92,14 @@ exports.create = function (req, res) {
         console.log('quiz_controller.create: Create Error!');
         res.render('quizes/new', {quiz: quiz, errors: err.errors});
       } else {
-        quiz //save: guarda en DB campos pregunta y respuesta de quiz
-        .save({fields: ["pregunta", "respuesta"]})
-        .then(function(){res.redirect('/quizes')})
-      };      //res.redirect: Redirección HTTP a lista de preguntas
+        if (temas.indexOf(quiz.tema) < 0) {
+          res.render('quizes/new', {quiz: quiz, errors:[{message: "El tema seleccionado no existe: " + quiz.tema}]});
+        } else {
+          quiz //save: guarda en DB campos pregunta y respuesta de quiz
+          .save({fields: ["pregunta", "respuesta", "tema"]})
+          .then(function(){res.redirect('/quizes')})
+        };      //res.redirect: Redirección HTTP a lista de preguntas
+      };
     }
   );
 };
@@ -108,8 +113,10 @@ exports.edit = function (req, res) {
 
 // PUT /quizes:id
 exports.update = function (req, res) {
+  var temas = models.temas;
   req.quiz.pregunta = req.body.quiz.pregunta;
   req.quiz.respuesta = req.body.quiz.respuesta;
+  req.quiz.tema = req.body.quiz.tema;
 
   req.quiz
   .validate()
@@ -118,15 +125,25 @@ exports.update = function (req, res) {
       if (err) {
         res.render('quizes/edit', {quiz: req.quiz, errors: err.errors});
       } else {
-        req.quiz // save: guarda campos pregunta y respuesta en DB
-        .save({fields: ["pregunta", "respuesta"]})
-        .then(
-          function() {
-            console.log('quiz_controller.update: Acualizando Quiz a ' + '"' + req.quiz.pregunta + '".');
-            res.redirect('/quizes'); // Redirección HTTP a lista de preguntas (URL relativo)
-          }
-        );
+        if (temas.indexOf(req.quiz.tema) < 0) {
+          res.render('quizes/new', {quiz: req.quiz, errors: [{message: "El tema seleccionado no existe: " + req.quiz.tema}]});
+        } else {
+          req.quiz // save: guarda campos pregunta y respuesta en DB
+          .save({fields: ["pregunta", "respuesta", "tema"]})
+          .then(
+            function() {
+              console.log('quiz_controller.update: Acualizando Quiz a ' + '"' + req.quiz.pregunta + '".');
+              res.redirect('/quizes'); // Redirección HTTP a lista de preguntas (URL relativo)
+            }
+          );
+        };
       };
+    }
+  )
+  .catch(
+    function (error) {
+      console.log('quiz_controller.update: Update Error!' + '[' + error + ']');
+      next(error);
     }
   );
 };
