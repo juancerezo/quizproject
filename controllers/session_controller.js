@@ -7,6 +7,24 @@ exports.loginRequired = function(req, res, next) {
   };
 };
 
+// MW de auto-logout
+
+exports.timeLogout = function(req, res, next){
+  if (req.session.user) {
+    var currentTime = (new Date).getTime();
+    if ((currentTime - req.session.lastTime)/1000 < 120) {
+      req.session.lastTime = (new Date).getTime();
+      next();
+    } else {
+      delete req.session.lastTime;
+      delete req.session.user;
+      res.redirect('/login');
+    };
+  } else {
+    next();
+  };
+};
+
 // GET /login --Formulario de login
 exports.new = function(req, res) {
   var errors = req.session.errors || {};
@@ -38,6 +56,7 @@ exports.create = function(req, res) {
 
 // DELETE /logout --Destruir session
 exports.destroy = function(req, res){
+  delete req.session.lastTime;
   delete req.session.user;
   res.redirect('/');
 };
