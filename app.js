@@ -7,7 +7,6 @@ var bodyParser = require('body-parser');
 var partials = require('express-partials');
 var methodOverride = require('method-override');
 var session = require('express-session');
-
 var routes = require('./routes/index');
 
 var app = express();
@@ -32,9 +31,6 @@ app.use(function (req, res, next) {
   if (!req.path.match(/\/login|\/logout/)) {
     req.session.redir = req.path;
   };
-
-  //Guardar la hora en cada transacción si no existe
-  req.session.lastTime = req.session.lastTime || (new Date).getTime();
 
   // Hacer visible req.session en las vistas
   res.locals.session = req.session;
@@ -63,7 +59,7 @@ if (app.get('env') === 'development') {
             errors: []
         });
     });
-}
+};
 
 // production error handler
 // no stacktraces leaked to user
