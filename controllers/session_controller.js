@@ -12,7 +12,6 @@ exports.loginRequired = function(req, res, next) {
 exports.timeLogout = function(req, res, next){
   if (req.session.user) {
     var currentTime = (new Date).getTime();
-    req.session.lastTime = req.session.lastTime || currentTime;
     if ((currentTime - req.session.lastTime)/1000 < 120) {
       req.session.lastTime = (new Date).getTime();
       next();
@@ -51,7 +50,7 @@ exports.create = function(req, res) {
     // Crear req.session.user y guardar campos id y username
     // La sesión se define por la existencia de: req.session.user
     req.session.user = {id: user.id, username: user.username};
-    res.redirect(req.session.redir.toString());
+    res.redirect("/quizes");
   });
 };
 
@@ -59,5 +58,5 @@ exports.create = function(req, res) {
 exports.destroy = function(req, res){
   delete req.session.lastTime;
   delete req.session.user;
-  res.redirect(req.session.redir.toString());
+  res.redirect('/');
 };
